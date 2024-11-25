@@ -34,7 +34,8 @@ namespace DataMasker.Runner
                            }
                            catch (Exception ex)
                            {
-                               WriteLine(ex.Message);
+
+                               LogMessage("[Exception ocurred] " +ex.Message);
                                Environment.Exit(1);
                            }
                        });
@@ -124,12 +125,20 @@ namespace DataMasker.Runner
             }
         }
 
-       
+        private static void LogMessage(
+           string message = null)
+        {
+           
+           Console.WriteLine("   [DataMasker] > " + message);
+           
+        }
+
+
 
         private static void Execute(
             Config config)
         {
-            WriteLine("Masking Data");
+            LogMessage("Masking Data");
             UpdateProgress(ProgressType.Overall, 0, config.Tables.Count, "Overall Progress");
 
             var dataProviders = new List<IDataProvider>
@@ -155,7 +164,7 @@ namespace DataMasker.Runner
                 UpdateProgress(ProgressType.Masking, 0, (int)rowCount, "Masking Progress");
                 UpdateProgress(ProgressType.Updating, 0, (int)rowCount, "Update Progress");
 
-                WriteLine("Starting masking processo on table "+tableConfig.Name + "...");
+                LogMessage("Starting masking processo on table "+tableConfig.Name + "...");
                 rows = dataSource.GetData(tableConfig);
 
 
@@ -174,28 +183,30 @@ namespace DataMasker.Runner
                 //update all rows
                 dataSource.UpdateRows(maskedRows, rowCount, tableConfig, totalUpdated => UpdateProgress(ProgressType.Updating, totalUpdated));
                 UpdateProgress(ProgressType.Overall, i + 1);
-                WriteLine("Completed masking process for sql statement:" + tableConfig.Name + ".");
+                LogMessage("Completed masking process for sql statement:" + tableConfig.Name + ".");
 
             }
 
             ISqlStatementDataSource sqlStatementDataSource = SqlStatementDataProvier.Provide(config.DataSource.Type, config.DataSource);
 
-            for (int i = 0; i < config.SqlStatements.Count; i++)
-            {
-                SqlStatementConfig sqlStatementConfig = config.SqlStatements[i];
+            if (config.SqlStatements!=null) { 
+                for (int i = 0; i < config.SqlStatements.Count; i++)
+                {
+                    SqlStatementConfig sqlStatementConfig = config.SqlStatements[i];
 
-                //IDataMasker dataMasker = new DataMasker(dataProviders);
-                WriteLine("Starting masking process for sql statement: "+ sqlStatementConfig.Name+  "...");
-                var rowCount = config.SqlStatements.Count();
-                UpdateProgress(ProgressType.Masking, 0, (int)rowCount, "Masking Progress");
-                UpdateProgress(ProgressType.Updating, 0, (int)rowCount, "Update Progress");
-                sqlStatementDataSource.Execute(sqlStatementConfig);
-                WriteLine("Completed masking process for sql statement:" + sqlStatementConfig.Name +".");
+                    //IDataMasker dataMasker = new DataMasker(dataProviders);
+                    LogMessage("Starting masking process for sql statement: "+ sqlStatementConfig.Name+  "...");
+                    var rowCount = config.SqlStatements.Count();
+                    UpdateProgress(ProgressType.Masking, 0, (int)rowCount, "Masking Progress");
+                    UpdateProgress(ProgressType.Updating, 0, (int)rowCount, "Update Progress");
+                    sqlStatementDataSource.Execute(sqlStatementConfig);
+                    LogMessage("Completed masking process for sql statement:" + sqlStatementConfig.Name +".");
 
 
+                }
             }
 
-            WriteLine("Done");
+            LogMessage("Done");
         }
     }
 }
